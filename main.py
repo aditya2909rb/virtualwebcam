@@ -1,12 +1,24 @@
 from __future__ import annotations
 
+import sys
 import threading
 from pathlib import Path
 from tkinter import Tk, StringVar, filedialog, messagebox, ttk
 
-import cv2
-import numpy as np
-import pyvirtualcam
+try:
+    import cv2
+    import numpy as np
+    import pyvirtualcam
+except ModuleNotFoundError as exc:
+    _missing_module = exc.name or "a required module"
+    _root = Tk()
+    _root.withdraw()
+    messagebox.showerror(
+        "Virtual Web Camera",
+        f"Missing dependency: {_missing_module}\n\nRun:\npython -m pip install -r requirements.txt",
+    )
+    _root.destroy()
+    sys.exit(1)
 
 
 class VirtualWebcamApp:
