@@ -18,6 +18,11 @@ $packageItems = @(
     (Join-Path $PSScriptRoot 'README.md')
 )
 
+$setupExe = Join-Path $PSScriptRoot 'setup-dist\VirtualWebCamera-Setup.exe'
+if (Test-Path $setupExe) {
+    $packageItems += $setupExe
+}
+
 Compress-Archive -Path $packageItems -DestinationPath $packagePath
 
 Write-Host "Package created at $packagePath"

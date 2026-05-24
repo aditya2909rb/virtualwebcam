@@ -22,7 +22,7 @@ except ModuleNotFoundError as exc:
 
 
 class VirtualWebcamApp:
-    def __init__(self) -> None:
+    def __init__(self, *, default_backend: str = "obs", backend_locked: bool = False) -> None:
         self.root = Tk()
         self.root.title("Virtual Web Camera")
         self.root.geometry("460x220")
@@ -32,7 +32,8 @@ class VirtualWebcamApp:
         self.stream_thread: threading.Thread | None = None
         self.stop_event = threading.Event()
         self.is_streaming = False
-        self.backend_name = StringVar(value="obs")
+        self.backend_locked = backend_locked
+        self.backend_name = StringVar(value=default_backend)
 
         self.status_text = StringVar(value="Choose a video to start streaming to the virtual camera.")
 
@@ -56,19 +57,25 @@ class VirtualWebcamApp:
         self.video_label = ttk.Label(frame, text="No video selected.")
         self.video_label.pack(anchor="w")
 
-        backend_row = ttk.Frame(frame)
-        backend_row.pack(fill="x", pady=(10, 0))
+        if self.backend_locked:
+            backend_row = ttk.Frame(frame)
+            backend_row.pack(fill="x", pady=(10, 0))
+            ttk.Label(backend_row, text="Virtual camera backend:").pack(side="left")
+            ttk.Label(backend_row, text=self.backend_name.get()).pack(side="left", padx=(8, 0))
+        else:
+            backend_row = ttk.Frame(frame)
+            backend_row.pack(fill="x", pady=(10, 0))
 
-        ttk.Label(backend_row, text="Virtual camera backend:").pack(side="left")
-        backend_select = ttk.Combobox(
-            backend_row,
-            textvariable=self.backend_name,
-            values=("obs", "unitycapture", "auto"),
-            state="readonly",
-            width=14,
-        )
-        backend_select.pack(side="left", padx=(8, 0))
-        ttk.Label(backend_row, text="Use obs if OBS Virtual Camera is installed and started.").pack(side="left", padx=(10, 0))
+            ttk.Label(backend_row, text="Virtual camera backend:").pack(side="left")
+            backend_select = ttk.Combobox(
+                backend_row,
+                textvariable=self.backend_name,
+                values=("obs", "unitycapture", "auto"),
+                state="readonly",
+                width=14,
+            )
+            backend_select.pack(side="left", padx=(8, 0))
+            ttk.Label(backend_row, text="Use obs if OBS Virtual Camera is installed and started.").pack(side="left", padx=(10, 0))
 
         ttk.Label(frame, textvariable=self.status_text, wraplength=420).pack(anchor="w", pady=(12, 12))
 
@@ -128,6 +135,9 @@ class VirtualWebcamApp:
         self.stream_thread.start()
 
     def _selected_backend(self) -> str | None:
+        if self.backend_locked:
+            return self.backend_name.get().strip().lower()
+
         backend = self.backend_name.get().strip().lower()
         if backend == "auto":
             return None
@@ -221,8 +231,8 @@ class VirtualWebcamApp:
         self.root.destroy()
 
 
-def main() -> None:
-    app = VirtualWebcamApp()
+def main(*, default_backend: str = "obs", backend_locked: bool = False) -> None:
+    app = VirtualWebcamApp(default_backend=default_backend, backend_locked=backend_locked)
     app.run()
 
 

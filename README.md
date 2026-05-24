@@ -31,6 +31,16 @@ This creates one Windows executable that packages the Python code and its librar
 
 The output will be in `dist\VirtualWebCamera.exe`.
 
+## Build the setup launcher
+
+This creates a separate installer-style launcher that installs OBS Studio, starts its virtual camera, and then opens the app.
+
+```powershell
+.\build_setup.ps1
+```
+
+The output will be in `setup-dist\VirtualWebCamera-Setup.exe`.
+
 ## Create a release package
 
 This makes a zip file that includes the packaged executable and the README.
@@ -39,7 +49,13 @@ This makes a zip file that includes the packaged executable and the README.
 .\package.ps1
 ```
 
+The zip will include the app executable and, if built, the setup launcher executable.
+
 The output will be in `release\VirtualWebCamera-package.zip`.
+
+## One-click setup
+
+Run `setup-dist\VirtualWebCamera-Setup.exe` for the installer flow. It will install OBS Studio with `winget` if needed, start OBS with virtual camera enabled, and then open the app.
 
 ## Run
 
