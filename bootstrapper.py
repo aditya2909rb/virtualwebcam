@@ -86,7 +86,7 @@ def _start_obs_virtual_camera(obs_exe: Path) -> subprocess.Popen[str]:
 def _launch_app() -> None:
     import main as webcam_main
 
-    webcam_main.main(default_backend="obs", backend_locked=True)
+    webcam_main.main(default_backend="external", backend_locked=True)
 
 
 def main() -> None:

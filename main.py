@@ -22,7 +22,19 @@ except ModuleNotFoundError as exc:
 
 
 class VirtualWebcamApp:
-    def __init__(self, *, default_backend: str = "obs", backend_locked: bool = False) -> None:
+    BACKEND_CHOICES = {
+        "external": "obs",
+        "unitycapture": "unitycapture",
+        "auto": "auto",
+    }
+
+    DISPLAY_NAMES = {
+        "external": "External Camera",
+        "unitycapture": "Unity Capture",
+        "auto": "Auto-detect",
+    }
+
+    def __init__(self, *, default_backend: str = "external", backend_locked: bool = False) -> None:
         self.root = Tk()
         self.root.title("Virtual Web Camera")
         self.root.geometry("460x220")
@@ -61,7 +73,7 @@ class VirtualWebcamApp:
             backend_row = ttk.Frame(frame)
             backend_row.pack(fill="x", pady=(10, 0))
             ttk.Label(backend_row, text="Virtual camera backend:").pack(side="left")
-            ttk.Label(backend_row, text=self.backend_name.get()).pack(side="left", padx=(8, 0))
+            ttk.Label(backend_row, text=self._backend_display_name(self.backend_name.get())).pack(side="left", padx=(8, 0))
         else:
             backend_row = ttk.Frame(frame)
             backend_row.pack(fill="x", pady=(10, 0))
@@ -70,12 +82,12 @@ class VirtualWebcamApp:
             backend_select = ttk.Combobox(
                 backend_row,
                 textvariable=self.backend_name,
-                values=("obs", "unitycapture", "auto"),
+                values=("external", "unitycapture", "auto"),
                 state="readonly",
-                width=14,
+                width=18,
             )
             backend_select.pack(side="left", padx=(8, 0))
-            ttk.Label(backend_row, text="Use obs if OBS Virtual Camera is installed and started.").pack(side="left", padx=(10, 0))
+            ttk.Label(backend_row, text="External Camera uses OBS Virtual Camera underneath.").pack(side="left", padx=(10, 0))
 
         ttk.Label(frame, textvariable=self.status_text, wraplength=420).pack(anchor="w", pady=(12, 12))
 
@@ -135,13 +147,17 @@ class VirtualWebcamApp:
         self.stream_thread.start()
 
     def _selected_backend(self) -> str | None:
-        if self.backend_locked:
-            return self.backend_name.get().strip().lower()
-
         backend = self.backend_name.get().strip().lower()
+        backend = self.BACKEND_CHOICES.get(backend, backend)
         if backend == "auto":
             return None
         return backend
+
+    def _backend_display_name(self, backend: str) -> str:
+        backend_key = backend.strip().lower()
+        if self.backend_locked and backend_key == "obs":
+            backend_key = "external"
+        return self.DISPLAY_NAMES.get(backend_key, backend)
 
     def _stream_video(self, video_path: Path) -> None:
         try:
@@ -186,16 +202,17 @@ class VirtualWebcamApp:
                     camera.sleep_until_next_frame()
         except Exception as exc:  # pragma: no cover - runtime errors should be surfaced to the user
             backend = self.backend_name.get().strip().lower()
+            backend = self.BACKEND_CHOICES.get(backend, backend)
             if backend == "obs":
                 detail = (
-                    "OBS Virtual Camera was not found or is not running.\n\n"
+                    "External Camera was not found or is not running.\n\n"
                     "Open OBS Studio and click Start Virtual Camera first, then run this app again.\n"
-                    "If you do not want OBS, choose unitycapture or auto instead."
+                    "If you do not want the external camera, choose Unity Capture or Auto-detect instead."
                 )
             elif backend == "unitycapture":
                 detail = (
                     "Unity Capture was not found. Install and enable the Unity Capture virtual camera driver,\n"
-                    "or switch the backend to obs or auto."
+                    "or switch the backend to External Camera or Auto-detect."
                 )
             else:
                 detail = (
@@ -231,7 +248,7 @@ class VirtualWebcamApp:
         self.root.destroy()
 
 
-def main(*, default_backend: str = "obs", backend_locked: bool = False) -> None:
+def main(*, default_backend: str = "external", backend_locked: bool = False) -> None:
     app = VirtualWebcamApp(default_backend=default_backend, backend_locked=backend_locked)
     app.run()
 
