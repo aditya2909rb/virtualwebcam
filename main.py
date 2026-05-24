@@ -23,18 +23,18 @@ except ModuleNotFoundError as exc:
 
 class VirtualWebcamApp:
     BACKEND_CHOICES = {
-        "external": "obs",
+        "usb camera 2909": "obs",
         "unitycapture": "unitycapture",
         "auto": "auto",
     }
 
     DISPLAY_NAMES = {
-        "external": "External Camera",
+        "usb camera 2909": "USB Camera 2909",
         "unitycapture": "Unity Capture",
         "auto": "Auto-detect",
     }
 
-    def __init__(self, *, default_backend: str = "external", backend_locked: bool = False) -> None:
+    def __init__(self, *, default_backend: str = "usb camera 2909", backend_locked: bool = False) -> None:
         self.root = Tk()
         self.root.title("Virtual Web Camera")
         self.root.geometry("460x220")
@@ -82,12 +82,12 @@ class VirtualWebcamApp:
             backend_select = ttk.Combobox(
                 backend_row,
                 textvariable=self.backend_name,
-                values=("external", "unitycapture", "auto"),
+                values=("USB Camera 2909", "Unity Capture", "Auto-detect"),
                 state="readonly",
                 width=18,
             )
             backend_select.pack(side="left", padx=(8, 0))
-            ttk.Label(backend_row, text="External Camera uses OBS Virtual Camera underneath.").pack(side="left", padx=(10, 0))
+            ttk.Label(backend_row, text="USB Camera 2909 uses OBS Virtual Camera underneath.").pack(side="left", padx=(10, 0))
 
         ttk.Label(frame, textvariable=self.status_text, wraplength=420).pack(anchor="w", pady=(12, 12))
 
@@ -155,8 +155,6 @@ class VirtualWebcamApp:
 
     def _backend_display_name(self, backend: str) -> str:
         backend_key = backend.strip().lower()
-        if self.backend_locked and backend_key == "obs":
-            backend_key = "external"
         return self.DISPLAY_NAMES.get(backend_key, backend)
 
     def _stream_video(self, video_path: Path) -> None:
@@ -205,9 +203,9 @@ class VirtualWebcamApp:
             backend = self.BACKEND_CHOICES.get(backend, backend)
             if backend == "obs":
                 detail = (
-                    "External Camera was not found or is not running.\n\n"
+                    "USB Camera 2909 was not found or is not running.\n\n"
                     "Open OBS Studio and click Start Virtual Camera first, then run this app again.\n"
-                    "If you do not want the external camera, choose Unity Capture or Auto-detect instead."
+                    "If you do not want USB Camera 2909, choose Unity Capture or Auto-detect instead."
                 )
             elif backend == "unitycapture":
                 detail = (
@@ -248,7 +246,7 @@ class VirtualWebcamApp:
         self.root.destroy()
 
 
-def main(*, default_backend: str = "external", backend_locked: bool = False) -> None:
+def main(*, default_backend: str = "usb camera 2909", backend_locked: bool = False) -> None:
     app = VirtualWebcamApp(default_backend=default_backend, backend_locked=backend_locked)
     app.run()
 
