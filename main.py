@@ -32,6 +32,7 @@ class VirtualWebcamApp:
         self.stream_thread: threading.Thread | None = None
         self.stop_event = threading.Event()
         self.is_streaming = False
+        self.backend_name = StringVar(value="obs")
 
         self.status_text = StringVar(value="Choose a video to start streaming to the virtual camera.")
 
@@ -54,6 +55,20 @@ class VirtualWebcamApp:
 
         self.video_label = ttk.Label(frame, text="No video selected.")
         self.video_label.pack(anchor="w")
+
+        backend_row = ttk.Frame(frame)
+        backend_row.pack(fill="x", pady=(10, 0))
+
+        ttk.Label(backend_row, text="Virtual camera backend:").pack(side="left")
+        backend_select = ttk.Combobox(
+            backend_row,
+            textvariable=self.backend_name,
+            values=("obs", "unitycapture", "auto"),
+            state="readonly",
+            width=14,
+        )
+        backend_select.pack(side="left", padx=(8, 0))
+        ttk.Label(backend_row, text="Use obs if OBS Virtual Camera is installed and started.").pack(side="left", padx=(10, 0))
 
         ttk.Label(frame, textvariable=self.status_text, wraplength=420).pack(anchor="w", pady=(12, 12))
 
@@ -112,6 +127,12 @@ class VirtualWebcamApp:
         self.stream_thread = threading.Thread(target=self._stream_video, args=(video_path,), daemon=True)
         self.stream_thread.start()
 
+    def _selected_backend(self) -> str | None:
+        backend = self.backend_name.get().strip().lower()
+        if backend == "auto":
+            return None
+        return backend
+
     def _stream_video(self, video_path: Path) -> None:
         try:
             capture = cv2.VideoCapture(str(video_path))
@@ -132,7 +153,8 @@ class VirtualWebcamApp:
                 height, width = first_frame.shape[:2]
                 capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
-            with pyvirtualcam.Camera(width=width, height=height, fps=fps) as camera:
+            backend = self._selected_backend()
+            with pyvirtualcam.Camera(width=width, height=height, fps=fps, backend=backend) as camera:
                 self.root.after(
                     0,
                     lambda: self.status_text.set(
@@ -153,8 +175,26 @@ class VirtualWebcamApp:
                     camera.send(np.ascontiguousarray(rgb_frame))
                     camera.sleep_until_next_frame()
         except Exception as exc:  # pragma: no cover - runtime errors should be surfaced to the user
+            backend = self.backend_name.get().strip().lower()
+            if backend == "obs":
+                detail = (
+                    "OBS Virtual Camera was not found or is not running.\n\n"
+                    "Open OBS Studio and click Start Virtual Camera first, then run this app again.\n"
+                    "If you do not want OBS, choose unitycapture or auto instead."
+                )
+            elif backend == "unitycapture":
+                detail = (
+                    "Unity Capture was not found. Install and enable the Unity Capture virtual camera driver,\n"
+                    "or switch the backend to obs or auto."
+                )
+            else:
+                detail = (
+                    "No virtual camera backend was found. Install OBS Virtual Camera or Unity Capture,\n"
+                    "then choose the matching backend in this app."
+                )
             self.root.after(0, lambda: messagebox.showerror("Virtual Web Camera", str(exc)))
-            self.root.after(0, lambda: self.status_text.set("Streaming failed. Check that a virtual camera backend is installed."))
+            self.root.after(0, lambda: messagebox.showinfo("Virtual Web Camera", detail))
+            self.root.after(0, lambda: self.status_text.set("Streaming failed. Check the selected virtual camera backend."))
         finally:
             self.root.after(0, self._stream_finished)
 

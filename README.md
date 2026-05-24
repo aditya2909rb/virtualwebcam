@@ -13,7 +13,7 @@ Recommended backend options:
 1. Unity Capture.
 2. Any other virtual camera driver supported by `pyvirtualcam`.
 
-OBS is not required.
+If you choose `obs`, open OBS Studio first and click **Start Virtual Camera** before launching this app.
 
 ## Setup
 
@@ -53,7 +53,7 @@ Or run the packaged app directly:
 .\dist\VirtualWebCamera.exe
 ```
 
-The app will ask you to choose a video, then ask whether to start streaming it. Once streaming starts, pick the virtual camera in Zoom, Teams, Meet, Discord, or any other app.
+The app will ask you to choose a video and a virtual camera backend. If you pick `obs`, start the OBS virtual camera first. Once streaming starts, pick the virtual camera in Zoom, Teams, Meet, Discord, or any other app.
 
 ## Behavior
 
@@ -63,5 +63,6 @@ The app will ask you to choose a video, then ask whether to start streaming it. 
 
 ## Troubleshooting
 
+- If you choose `obs` and see a camera-not-found error, start OBS Studio and click **Start Virtual Camera**.
 - If you see an error about no virtual camera backend, install a supported virtual camera driver such as Unity Capture first.
 - If the video fails to open, try another format such as MP4 or MOV.
