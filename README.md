@@ -31,6 +31,16 @@ This creates one Windows executable that packages the Python code and its librar
 
 The output will be in `dist\VirtualWebCamera.exe`.
 
+## Create a release package
+
+This makes a zip file that includes the packaged executable and the README.
+
+```powershell
+.\package.ps1
+```
+
+The output will be in `release\VirtualWebCamera-package.zip`.
+
 ## Run
 
 ```powershell
